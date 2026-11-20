@@ -201,7 +201,7 @@ export const LAYOUTS = {
     photoZone: [0, 0, 1, 1],
     bandTop: null,
     titleZone: [0.05, 0.56, 0.90, 0.34],
-    taglineAt: [0.055, 0.535],
+    taglineAt: [0.055, 0.505],
     badgeAt: [0.895, 0.085],
     sunAt: null,
     palms: 'none',
@@ -242,6 +242,29 @@ export const EXPORT_SIZES = [
   { id: '1080x1920', label: 'Story · 1080 × 1920', w: 1080, h: 1920 },
 ];
 
+export function defaultCrops() {
+  return {
+    A: { slot: 0, zoom: 1.12, dx: 0, dy: -0.04, flip: false },
+    B: { slot: 1, zoom: 1.25, dx: 0.06, dy: 0, flip: false },
+    C: { slot: 0, zoom: 1.35, dx: -0.08, dy: 0.02, flip: false },
+  };
+}
+
+// A layout's framing tweaks are the STARTING crop for its panels: apply them
+// when the layout is chosen, so the user (or a shot) can still move the photo
+// afterwards. They must not be re-applied at render time, or dragging would
+// do nothing on panels a layout tweaks.
+export function applyLayoutCrops(state) {
+  const fresh = defaultCrops();
+  const tweak = (LAYOUTS[state.layout] && LAYOUTS[state.layout].crops) || {};
+  for (const id of Object.keys(fresh)) {
+    // framing only (zoom/pan); the photo slot stays whatever the user or a
+    // shot chose, so a layout switch never silently swaps the photo
+    const keepSlot = state.crops[id] ? state.crops[id].slot : fresh[id].slot;
+    state.crops[id] = { ...fresh[id], ...(tweak[id] || {}), slot: keepSlot };
+  }
+}
+
 export function defaultState() {
   return {
     layout: 'diagonal',
@@ -257,11 +280,7 @@ export function defaultState() {
       { src: null, label: 'Your photo', img: null },
     ],
     // per-panel crop: zoom, pan (fractions of panel size), flip
-    crops: {
-      A: { slot: 0, zoom: 1.12, dx: 0, dy: -0.04, flip: false },
-      B: { slot: 1, zoom: 1.25, dx: 0.06, dy: 0, flip: false },
-      C: { slot: 0, zoom: 1.35, dx: -0.08, dy: 0.02, flip: false },
-    },
+    crops: defaultCrops(),
     effects: { grain: true, halftone: true, palms: true, sun: true, skyline: true, vignette: true },
     gradeOn: true,
     selected: 'A',

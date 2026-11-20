@@ -350,9 +350,7 @@ export function renderCover(ctx, state, W, H) {
   // 3. photo panels
   const grade = state.gradeOn === false ? 'none' : preset.grade;
   for (const panel of layout.panels) {
-    const base = (state.crops && state.crops[panel.id]) || { slot: panel.slot, zoom: 1, dx: 0, dy: 0 };
-    const tweak = (layout.crops && layout.crops[panel.id]) || {};
-    const crop = { ...base, ...tweak };
+    const crop = (state.crops && state.crops[panel.id]) || { slot: panel.slot, zoom: 1, dx: 0, dy: 0 };
     const photo = state.photos[crop.slot] || state.photos[0];
     const img = photo && photo.img;
     const box = polyBBox(panel.poly, W, H);

@@ -2,7 +2,7 @@
 // Leonida Cover Studio — the editor: layout and preset pickers, per-panel
 // crop controls, caption editing, photo slots and PNG export.
 
-import { PRESETS, PRESET_ORDER, LAYOUTS, LAYOUT_ORDER, EXPORT_SIZES, defaultState } from './state.js';
+import { PRESETS, PRESET_ORDER, LAYOUTS, LAYOUT_ORDER, EXPORT_SIZES, defaultState, applyLayoutCrops } from './state.js';
 import { renderCover, loadPhotos, panelAt } from './cover.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -63,7 +63,7 @@ function buildPickers() {
     b.className = 'pick';
     b.dataset.layout = id;
     b.innerHTML = `<b>${l.name}</b><span>${l.blurb}</span>`;
-    b.addEventListener('click', () => { state.layout = id; syncControls(); renderPreview(); });
+    b.addEventListener('click', () => { state.layout = id; applyLayoutCrops(state); syncControls(); renderPreview(); });
     layoutBox.appendChild(b);
   }
   const presetBox = $('#presets');
@@ -193,6 +193,7 @@ function bindEditor() {
 export async function initEditor() {
   buildPickers();
   bindEditor();
+  applyLayoutCrops(state);
   await loadPhotos(state);
   // keep the caption inputs in sync with the state
   $('#title').value = state.title;

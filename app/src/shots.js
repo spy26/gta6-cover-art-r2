@@ -5,6 +5,7 @@
 
 import { initEditor } from './main.js';
 import { renderCover, loadPhotos } from './cover.js';
+import { applyLayoutCrops } from './state.js';
 
 const params = new URLSearchParams(location.search);
 const shot = params.get('shot');
@@ -30,10 +31,23 @@ function applyParams(state) {
   if (grade === 'off') state.gradeOn = false;
 }
 
+// Shot-only crop overrides, e.g. &dyA=0.62&zoomA=1.0 for a wide frame.
+// Applied AFTER the layout's framing, so they win over it.
+function applyCropParams(state) {
+  for (const id of ['A', 'B', 'C']) {
+    const dy = params.get('dy' + id);
+    if (dy !== null && state.crops[id]) state.crops[id].dy = Number(dy);
+    const zoom = params.get('zoom' + id);
+    if (zoom !== null && state.crops[id]) state.crops[id].zoom = Number(zoom);
+  }
+}
+
 async function coverShot() {
   const { defaultState } = await import('./state.js');
   const state = defaultState();
   applyParams(state);
+  applyLayoutCrops(state);
+  applyCropParams(state);
   const size = (params.get('size') || '1080x1080').split('x').map(Number);
   const w = size[0] || 1080, h = size[1] || 1080;
   await loadPhotos(state);
@@ -57,6 +71,8 @@ async function editorShot() {
   await initEditor();
   const state = window.__vice2.state;
   applyParams(state);
+  applyLayoutCrops(state);
+  applyCropParams(state);
   await loadPhotos(state);
   window.__vice2.renderPreview();
   window.__shotReady = true;
